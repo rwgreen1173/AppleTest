@@ -25,7 +25,7 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # Compiles the simulator application directory (.app)
+      # Compiles the simulator application directory (.app)x
       - name: Build iOS Simulator App
         run: ./gradlew :shared:iosX64Binaries
 
