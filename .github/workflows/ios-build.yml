@@ -29,11 +29,25 @@ jobs:
       - name: Build Kotlin Shared Framework
         run: ./gradlew :shared:iosX64Binaries
 
-      # 2. Compiles the actual user interface into a standalone simulator .app folder
+      # 2. Dynamically locates and compiles the native Xcode application structure
       - name: Compile Native iOS Application
         run: |
-          xcodebuild -project iosApp/iosApp.xcodeproj \
-                     -scheme iosApp \
+          echo "Searching for your Xcode project..."
+          XCODE_PROJ=$(find . -name "*.xcodeproj" -type d | grep -v "build/" | head -n 1)
+          
+          if [ -z "$XCODE_PROJ" ]; then
+            echo "ERROR: Could not locate an .xcodeproj file in your repository."
+            exit 1
+          fi
+          
+          echo "Found Xcode project at: $XCODE_PROJ"
+          
+          # Get the name of the project file without extension to use as the scheme
+          SCHEME_NAME=$(basename "$XCODE_PROJ" .xcodeproj)
+          echo "Using scheme: $SCHEME_NAME"
+          
+          xcodebuild -project "$XCODE_PROJ" \
+                     -scheme "$SCHEME_NAME" \
                      -configuration Debug \
                      -sdk iphonesimulator \
                      -derivedDataPath build/ios
