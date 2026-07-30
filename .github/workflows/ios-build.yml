@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-14 # Uses a macOS environment with Xcode pre-installed
+    runs-on: macos-14 # Uses a macOS environment with Xcode pre-installed Minor Change
     
     steps:
     - name: Checkout Repository
