@@ -29,16 +29,18 @@ jobs:
       - name: Build iOS Simulator App
         run: ./gradlew :shared:iosX64Binaries
 
-      # Zips the built .app package so Appetize can read it
-      - name: Zip Simulator App
-        run: |
-          cd shared/build/bin/iosX64/debugFramework/
-          zip -r iosApp.zip *.framework
 
-      # Uploads the zip directly to your Appetize dashboard
+      # 2. Correctly packs the executable .app bundle (Not the raw framework)
+      - name: Zip Simulator App Bundle
+        run: |
+          cd app/build/outputs/
+          zip -r iosApp.zip *.app
+
+
+      # 3. Securely pushes the valid zip package to Appetize using the correct API header
       - name: Upload to Appetize.io
         run: |
-          curl --url "https://appetize.io" \
-               --user "${{ secrets.APPETIZE_API_TOKEN }}:" \
-               --form "file=@shared/build/bin/iosX64/debugFramework/iosApp.zip" \
-               --form "platform=ios"
+          curl -X POST https://api.appetize.io/v1/apps \
+               -H "X-API-KEY: ${{ secrets.APPETIZE_API_TOKEN }}" \
+               -F "file=@app/build/outputs/iosApp.zip" \
+               -F "platform=ios"
