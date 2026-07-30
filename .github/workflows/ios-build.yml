@@ -25,36 +25,42 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Compiles the iOS binary within the shared architecture module
-      - name: Build iOS Framework
+      # 1. Compiles the core Kotlin Multiplatform shared logic
+      - name: Build Kotlin Shared Framework
         run: ./gradlew :shared:iosX64Binaries
 
-      # 2. Dynamically isolates the framework folder and creates a standard ZIP package
+      # 2. Compiles the actual user interface into a standalone simulator .app folder
+      - name: Compile Native iOS Application
+        run: |
+          xcodebuild -project iosApp/iosApp.xcodeproj \
+                     -scheme iosApp \
+                     -configuration Debug \
+                     -sdk iphonesimulator \
+                     -derivedDataPath build/ios
+
+      # 3. Bundles the compiled simulator application folder into a clean ZIP archive
       - name: Package Simulator App Bundle
         run: |
-          echo "Searching for compiled iOS frameworks..."
-          FRAMEWORK_PATH=$(find . -name "*.framework" -type d | head -n 1)
+          APP_PATH=$(find build/ios -name "*.app" -type d | head -n 1)
           
-          if [ -z "$FRAMEWORK_PATH" ]; then
-            echo "ERROR: Could not locate any compiled .framework folder inside the build outputs."
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Could not locate compiled .app bundle inside build/ios outputs."
             exit 1
           fi
           
-          echo "Found framework at: $FRAMEWORK_PATH"
-          PARENT_DIR=$(dirname "$FRAMEWORK_PATH")
-          FRAMEWORK_NAME=$(basename "$FRAMEWORK_PATH")
+          echo "Found application bundle at: $APP_PATH"
+          PARENT_DIR=$(dirname "$APP_PATH")
+          APP_NAME=$(basename "$APP_PATH")
           
           cd "$PARENT_DIR"
-          zip -r iosApp.zip "$FRAMEWORK_NAME"
-          
-          # Move the zip back to the root workspace directory for easy access
+          zip -r iosApp.zip "$APP_NAME"
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully created packed archive at root workspace."
+          echo "Successfully packaged application bundle."
 
-      # 3. Securely pushes the valid zip package to Appetize using the correct API header
+      # 4. Securely pushes the valid application package directly to Appetize
       - name: Upload to Appetize.io
         run: |
-          curl -X POST https://api.appetize.io/v1/apps \
+          curl -X POST https://appetize.io \
                -H "X-API-KEY: ${{ secrets.APPETIZE_API_TOKEN }}" \
                -F "file=@iosApp.zip" \
                -F "platform=ios"
