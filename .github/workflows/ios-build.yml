@@ -25,31 +25,31 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Compiles your exact multiplatform app module setup for the Mac/iOS Simulator
-      - name: Build App Simulator Bundle
-        run: ./gradlew :app:iosX64Binaries
+      # 1. Compiles your core Kotlin Multiplatform binaries inside the shared module
+      - name: Build Shared iOS Binary
+        run: ./gradlew :shared:iosX64Binaries
 
-      # 2. Scans the workspace dynamically to locate the generated .app bundle folder and pack it
+      # 2. Automatically locates the built binary files, packages them into a ZIP archive, and moves them to the workspace root
       - name: Package Simulator App Bundle
         run: |
-          echo "Locating your generated KMP application bundle..."
-          APP_PATH=$(find . -name "*.app" -type d | grep -v "Xcode" | head -n 1)
+          echo "Locating your generated KMP application assets..."
+          ASSET_PATH=$(find shared/build -name "*.framework" -type d | head -n 1)
           
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Could not locate compiled .app bundles inside your project build outputs."
+          if [ -z "$ASSET_PATH" ]; then
+            echo "ERROR: Could not locate compiled multiplatform framework outputs inside shared/build."
             exit 1
           fi
           
-          echo "Found application target folder at: $APP_PATH"
-          PARENT_DIR=$(dirname "$APP_PATH")
-          APP_NAME=$(basename "$APP_PATH")
+          echo "Found compiled framework path at: $ASSET_PATH"
+          PARENT_DIR=$(dirname "$ASSET_PATH")
+          ASSET_NAME=$(basename "$ASSET_PATH")
           
           cd "$PARENT_DIR"
-          zip -r iosApp.zip "$APP_NAME"
+          zip -r iosApp.zip "$ASSET_NAME"
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully packed application binary structure."
+          echo "Successfully packaged build assets."
 
-      # 3. Securely pushes the finalized app zip file directly into your Appetize dashboard
+      # 3. Securely pushes the valid target package directly to your Appetize workspace dashboard
       - name: Upload to Appetize.io
         run: |
           curl -X POST https://appetize.io \
