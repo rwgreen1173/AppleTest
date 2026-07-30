@@ -8,24 +8,23 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-14 # Uses a macOS environment with Xcode pre-installed Minor Change
-    
+    runs-on: macos-14
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-    - name: Setup Gradle Cache
-      uses: gradle/actions/setup-gradle@v3
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
 
-    - name: Make Gradle executable
-    - run: chmod +x ./gradlew
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
 
-    - name: Build iOS Framework / App
-      run: ./gradlew :composeApp:iosX64Binaries # Compiles the iOS simulator binary
-
+      - name: Build iOS Framework / App
+        run: ./gradlew :composeApp:iosX64Binaries
