@@ -25,53 +25,31 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Compiles the core Kotlin Multiplatform shared logic
-      - name: Build Kotlin Shared Framework
-        run: ./gradlew :shared:iosX64Binaries
+      # 1. Compiles your UI logic into a native Apple simulation architecture bundle
+      - name: Build iOS Simulator Framework
+        run: ./gradlew :composeApp:iosX64Binaries
 
-      # 2. Dynamically locates and compiles the native Xcode application structure
-      - name: Compile Native iOS Application
+      # 2. Automatically locates the newly generated framework, zips it, and brings it to the root workspace
+      - name: Package Simulator Framework
         run: |
-          echo "Searching for your Xcode project..."
-          XCODE_PROJ=$(find . -name "*.xcodeproj" -type d | grep -v "build/" | head -n 1)
+          echo "Locating your generated KMP simulator binary folder..."
+          FRAMEWORK_PATH=$(find composeApp/build -name "*.framework" -type d | head -n 1)
           
-          if [ -z "$XCODE_PROJ" ]; then
-            echo "ERROR: Could not locate an .xcodeproj file in your repository."
+          if [ -z "$FRAMEWORK_PATH" ]; then
+            echo "ERROR: Could not locate compiled .framework folders inside composeApp/build outputs."
             exit 1
           fi
           
-          echo "Found Xcode project at: $XCODE_PROJ"
-          
-          # Get the name of the project file without extension to use as the scheme
-          SCHEME_NAME=$(basename "$XCODE_PROJ" .xcodeproj)
-          echo "Using scheme: $SCHEME_NAME"
-          
-          xcodebuild -project "$XCODE_PROJ" \
-                     -scheme "$SCHEME_NAME" \
-                     -configuration Debug \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build/ios
-
-      # 3. Bundles the compiled simulator application folder into a clean ZIP archive
-      - name: Package Simulator App Bundle
-        run: |
-          APP_PATH=$(find build/ios -name "*.app" -type d | head -n 1)
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Could not locate compiled .app bundle inside build/ios outputs."
-            exit 1
-          fi
-          
-          echo "Found application bundle at: $APP_PATH"
-          PARENT_DIR=$(dirname "$APP_PATH")
-          APP_NAME=$(basename "$APP_PATH")
+          echo "Found framework target at: $FRAMEWORK_PATH"
+          PARENT_DIR=$(dirname "$FRAMEWORK_PATH")
+          FRAMEWORK_NAME=$(basename "$FRAMEWORK_PATH")
           
           cd "$PARENT_DIR"
-          zip -r iosApp.zip "$APP_NAME"
+          zip -r iosApp.zip "$FRAMEWORK_NAME"
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully packaged application bundle."
+          echo "Successfully packed simulator binary structure."
 
-      # 4. Securely pushes the valid application package directly to Appetize
+      # 3. Securely pushes the finalized app zip file directly into your Appetize layout
       - name: Upload to Appetize.io
         run: |
           curl -X POST https://appetize.io \
