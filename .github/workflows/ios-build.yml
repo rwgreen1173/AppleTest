@@ -25,29 +25,29 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Compiles your UI logic into a native Apple simulation architecture bundle
-      - name: Build iOS Simulator Framework
+      # 1. Compiles your Multiplatform project UI layout into an Apple simulator application bundle
+      - name: Build App Simulator Bundle
         run: ./gradlew :composeApp:iosX64Binaries
 
-      # 2. Automatically locates the newly generated framework, zips it, and brings it to the root workspace
-      - name: Package Simulator Framework
+      # 2. Automatically locates the newly generated .app bundle folder, packs it into a ZIP file, and copies it to the root workspace
+      - name: Package Simulator App Bundle
         run: |
-          echo "Locating your generated KMP simulator binary folder..."
-          FRAMEWORK_PATH=$(find composeApp/build -name "*.framework" -type d | head -n 1)
+          echo "Locating your generated KMP application bundle..."
+          APP_PATH=$(find composeApp/build -name "*.app" -type d | head -n 1)
           
-          if [ -z "$FRAMEWORK_PATH" ]; then
-            echo "ERROR: Could not locate compiled .framework folders inside composeApp/build outputs."
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Could not locate compiled .app bundles inside composeApp/build outputs."
             exit 1
           fi
           
-          echo "Found framework target at: $FRAMEWORK_PATH"
-          PARENT_DIR=$(dirname "$FRAMEWORK_PATH")
-          FRAMEWORK_NAME=$(basename "$FRAMEWORK_PATH")
+          echo "Found application target folder at: $APP_PATH"
+          PARENT_DIR=$(dirname "$APP_PATH")
+          APP_NAME=$(basename "$APP_PATH")
           
           cd "$PARENT_DIR"
-          zip -r iosApp.zip "$FRAMEWORK_NAME"
+          zip -r iosApp.zip "$APP_NAME"
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully packed simulator binary structure."
+          echo "Successfully packed application binary structure."
 
       # 3. Securely pushes the finalized app zip file directly into your Appetize layout
       - name: Upload to Appetize.io
