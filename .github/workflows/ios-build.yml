@@ -1,8 +1,12 @@
+name: Build and Deploy to Appetize
+
 on:
   push:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
+  build-and-upload:
     runs-on: macos-14
 
     steps:
@@ -21,8 +25,20 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
+      # Compiles the simulator application directory (.app)
+      - name: Build iOS Simulator App
         run: ./gradlew :shared:iosX64Binaries
 
-        xx
+      # Zips the built .app package so Appetize can read it
+      - name: Zip Simulator App
+        run: |
+          cd shared/build/bin/iosX64/debugFramework/
+          zip -r iosApp.zip *.framework
 
-
+      # Uploads the zip directly to your Appetize dashboard
+      - name: Upload to Appetize.io
+        run: |
+          curl --url "https://appetize.io" \
+               --user "${{ secrets.APPETIZE_API_TOKEN }}:" \
+               --form "file=@shared/build/bin/iosX64/debugFramework/iosApp.zip" \
+               --form "platform=ios"
