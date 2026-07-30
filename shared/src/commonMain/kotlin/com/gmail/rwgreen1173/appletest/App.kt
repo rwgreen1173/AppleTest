@@ -20,7 +20,7 @@ fun App() {
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
-        text = "Hello $name!",
+        text = "Hello $name!, How are you?",
         modifier = modifier
     )
 }
