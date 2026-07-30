@@ -54,7 +54,7 @@ jobs:
       # 3. Securely pushes the valid zip package to Appetize using the correct API header
       - name: Upload to Appetize.io
         run: |
-          curl -X POST https://appetize.io \
+          curl -X POST https://api.appetize.io/v1/apps \
                -H "X-API-KEY: ${{ secrets.APPETIZE_API_TOKEN }}" \
                -F "file=@iosApp.zip" \
                -F "platform=ios"
