@@ -23,4 +23,6 @@ jobs:
 
         run: ./gradlew :shared:iosX64Binaries
 
+        xx
+
 
