@@ -49,10 +49,10 @@ jobs:
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
           echo "Successfully packaged build assets."
 
-      # 3. Securely pushes the valid target package directly to your Appetize workspace dashboard
+      # 3. Securely pushes the valid target package directly to the correct API endpoint
       - name: Upload to Appetize.io
         run: |
-          curl -X POST https://appetize.io \
+          curl -X POST https://api.appetize.io/v1/apps \
                -H "X-API-KEY: ${{ secrets.APPETIZE_API_TOKEN }}" \
                -F "file=@iosApp.zip" \
                -F "platform=ios"
