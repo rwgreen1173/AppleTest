@@ -23,5 +23,9 @@ jobs:
     - name: Setup Gradle Cache
       uses: gradle/actions/setup-gradle@v3
 
+    - name: Make Gradle executable
+    - run: chmod +x ./gradlew
+
     - name: Build iOS Framework / App
       run: ./gradlew :composeApp:iosX64Binaries # Compiles the iOS simulator binary
+
