@@ -27,5 +27,6 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build iOS Framework / App
-        run: ./gradlew :app:iosX64Binaries
+        run: ./gradlew :shared:iosX64Binaries
+
 
