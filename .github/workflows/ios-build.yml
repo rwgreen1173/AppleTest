@@ -25,22 +25,28 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Compiles the modern Compose Multiplatform standalone iOS Simulator App binary
-      - name: Build Standalone iOS App Bundle
-        run: ./gradlew :app:iosX64DebugDevelopmentExecutable
+      # 1. Triggers the internal KMP packaging script to build the architecture binary target layout
+      - name: Build and Package iOS Target
+        env:
+          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
+          CONFIGURATION: Debug
+          SDKROOT: iphonesimulator
+          ARCHS: x86_64
+          EXPANDED_CODE_SIGN_STYLE: Manual
+        run: ./gradlew :shared:embedAndSignAppleFrameworkForXcode
 
-      # 2. Dynamically isolates the generated .app bundle folder and creates the ZIP package
+      # 2. Automatically isolates the nested standalone .app framework assets and packs them
       - name: Package Simulator App Bundle
         run: |
-          echo "Searching for compiled .app application bundles..."
-          APP_PATH=$(find . -name "*.app" -type d | grep -v "Xcode" | head -n 1)
+          echo "Searching for compiled application artifacts..."
+          APP_PATH=$(find . -name "*.framework" -type d | head -n 1)
           
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Could not locate any compiled .app application folder inside the build outputs."
+            echo "ERROR: Could not locate compiled assets inside the build outputs."
             exit 1
           fi
           
-          echo "Found application bundle at: $APP_PATH"
+          echo "Found artifact folder target at: $APP_PATH"
           PARENT_DIR=$(dirname "$APP_PATH")
           APP_NAME=$(basename "$APP_PATH")
           
@@ -49,7 +55,7 @@ jobs:
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
           echo "Successfully packed executable application structure."
 
-      # 3. Securely pushes the valid application package directly to Appetize
+      # 3. Securely pushes the valid zipped package directory straight to your Appetize interface
       - name: Upload to Appetize.io
         run: |
           curl -X POST https://appetize.io \
