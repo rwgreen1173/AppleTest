@@ -27,7 +27,7 @@ jobs:
 
       # Compiles the simulator framework
       - name: Build Shared Framework
-        run: ./gradlew :shared:iosX64Binaries
+        run: ./gradlew :shared:iosSimulatorArm64Binaries
 
       # Builds the actual iOS .app bundle using xcodebuild
       - name: Build iOS Simulator App
@@ -37,6 +37,7 @@ jobs:
                      -configuration Debug \
                      -sdk iphonesimulator \
                      -derivedDataPath build-ios \
+                     ARCHS=arm64 \
                      CODE_SIGNING_ALLOWED=NO
 
       # Zips the built .app package so Appetize can read it

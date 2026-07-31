@@ -7,3 +7,5 @@
 - `[x]` Create `iosApp/iosApp/Info.plist`
 - `[x]` Create `iosApp/iosApp.xcodeproj/project.pbxproj`
 - `[x]` Update `ios-build.yml` to build `.app` bundle and upload
+- `[x]` Update `ios-build.yml` to use `iosSimulatorArm64`
+- `[x]` Update `project.pbxproj` paths to `iosSimulatorArm64`

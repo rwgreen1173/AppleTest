@@ -12,8 +12,8 @@ I added a minimal iOS project in the `iosApp` directory. This project acts as a 
 
 ### 2. Updated GitHub Workflow
 The [ios-build.yml](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/.github/workflows/ios-build.yml) workflow now performs the following steps:
-1.  **Builds the Shared Framework**: Uses `./gradlew :shared:iosX64Binaries`.
-2.  **Builds the .app bundle**: Uses `xcodebuild` to create a simulator executable.
+1.  **Builds the Shared Framework**: Uses `./gradlew :shared:iosSimulatorArm64Binaries` (Targeting ARM64 for native Mac runners).
+2.  **Builds the .app bundle**: Uses `xcodebuild` with `ARCHS=arm64` to create a simulator executable.
 3.  **Zips the .app bundle**: Packages the resulting `iosApp.app` into `iosApp.zip`.
 4.  **Uploads to Appetize**: Sends the zip to the correct API endpoint.
 
