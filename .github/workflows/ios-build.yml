@@ -1,5 +1,12 @@
 name: Build and Deploy to Appetize
 
+org:
+  jetbrains:
+    compose:
+      ios:
+        resources:
+          sync=false:
+
 on:
   push:
     branches: [ master ]
