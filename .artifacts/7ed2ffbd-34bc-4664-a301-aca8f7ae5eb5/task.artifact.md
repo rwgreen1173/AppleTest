@@ -1,0 +1,3 @@
+- `[x]` Update `ios-build.yml` with correct Appetize API URL
+- `[x]` Fix `curl` command syntax for Appetize API
+- `[x]` Add guidance on generating the required `.app` bundle
