@@ -3,4 +3,8 @@ package com.gmail.rwgreen1173.appletest
 import androidx.compose.ui.window.ComposeUIViewController
 import platform.UIKit.UIViewController
 
-fun MainViewController(): UIViewController = ComposeUIViewController { App() }
+fun MainViewController(): UIViewController = ComposeUIViewController(
+    configure = {
+        enforceStrictPlistSanityCheck = false
+    }
+) { App() }

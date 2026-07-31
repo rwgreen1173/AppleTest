@@ -9,3 +9,5 @@
 - `[x]` Update `ios-build.yml` to build `.app` bundle and upload
 - `[x]` Update `ios-build.yml` to use `iosSimulatorArm64`
 - `[x]` Update `project.pbxproj` paths to `iosSimulatorArm64`
+- `[x]` Add `CADisableMinimumFrameDurationOnPhone` to `Info.plist`
+- `[x]` Disable strict sanity checks in `MainViewController.kt`

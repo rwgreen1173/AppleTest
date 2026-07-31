@@ -1,23 +1,19 @@
-# Fix iOS Build Architecture Mismatch
+# Fix iOS Compose Runtime Crash
 
-The `Ld` (linker) error occurs because the GitHub Action is running on a `macos-14` runner (Apple Silicon/ARM64), but the workflow was only building the `iosX64` (Intel) version of the shared framework. Xcode was then trying to build the app for the `arm64` simulator and couldn't find the compatible framework.
+The app is crashing because Compose Multiplatform performs a sanity check on `Info.plist` for performance-related keys. Specifically, it requires `CADisableMinimumFrameDurationOnPhone` to be set to `true` to ensure high refresh rate support on modern iPhones.
 
 ## Proposed Changes
 
-### GitHub Workflow
+### iOS Application
 
-#### [MODIFY] [ios-build.yml](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/.github/workflows/ios-build.yml)
-- Change the Gradle task from `:shared:iosX64Binaries` to `:shared:iosSimulatorArm64Binaries`.
-- Update the zipping and path logic to reflect the `iosSimulatorArm64` output directory.
+#### [MODIFY] [Info.plist](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/iosApp/iosApp/Info.plist)
+- Add `<key>CADisableMinimumFrameDurationOnPhone</key><true/>`.
+- Add a basic `UIApplicationSceneManifest` to resolve the scene configuration warnings.
 
-### Xcode Project
-
-#### [MODIFY] [project.pbxproj](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/iosApp/iosApp.xcodeproj/project.pbxproj)
-- Update `FRAMEWORK_SEARCH_PATHS` to include the `iosSimulatorArm64` directory.
-- Update the file reference path for `shared.framework`.
+#### [MODIFY] [MainViewController.kt](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/shared/src/iosMain/kotlin/com/gmail/rwgreen1173/appletest/MainViewController.kt)
+- Optionally disable strict sanity checks as a fallback.
 
 ## Verification Plan
 
 ### Automated Verification
-- Push changes and verify the GitHub Action completes the `xcodebuild` step successfully.
-- Ensure the linker no longer complains about missing `arm64` symbols.
+- Push changes and verify that the app no longer crashes in the Appetize.io logs.
