@@ -1,17 +1,9 @@
 name: Build and Deploy to Appetize
 
-
 on:
   push:
     branches: [ master ]
   workflow_dispatch:
-
-org:
-  jetbrains:
-    compose:
-      ios:
-        resources:
-          sync=false:
 
 jobs:
   build-and-upload:
@@ -33,42 +25,20 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Manually mocks the full Xcode system parameters so embedAndSign executes successfully
-      - name: Build and Package iOS Target
-        env:
-          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
-          CONFIGURATION: Debug
-          SDK_NAME: iphonesimulator
-          ARCHS: x86_64
-          TARGET_BUILD_DIR: ${{ github.workspace }}/shared/build/appetize-output
-          FRAMEWORKS_FOLDER_PATH: shared.framework
-          BUILT_PRODUCTS_DIR: ${{ github.workspace }}/shared/build/appetize-output
-        run: ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+      # Compiles the simulator application directory (.app)
+      - name: Build iOS Simulator App
+        run: ./gradlew :shared:iosX64Binaries
 
-      # 2. Pack the framework bundle from the mocked output directory
-      - name: Package Simulator App Bundle
+      # Zips the built .app package so Appetize can read it
+      - name: Zip Simulator App
         run: |
-          echo "Searching for compiled application artifacts..."
-          APP_PATH=$(find . -name "*.framework" -type d | head -n 1)
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Could not locate compiled assets inside the build outputs."
-            exit 1
-          fi
-          
-          echo "Found artifact folder target at: $APP_PATH"
-          PARENT_DIR=$(dirname "$APP_PATH")
-          APP_NAME=$(basename "$APP_PATH")
-          
-          cd "$PARENT_DIR"
-          zip -r iosApp.zip "$APP_NAME"
-          mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully packed executable application structure."
+          cd shared/build/bin/iosX64/debugFramework/
+          zip -r iosApp.zip *.framework
 
-      # 3. Securely pushes the valid zipped package directory straight to your Appetize interface
+      # Uploads the zip directly to your Appetize dashboard
       - name: Upload to Appetize.io
         run: |
-          curl -X POST https://appetize.io \
-               -H "X-API-KEY: ${{ secrets.APPETIZE_API_TOKEN }}" \
-               -F "file=@iosApp.zip" \
-               -F "platform=ios"
+          curl --url https://appetize.io/v1/apps \
+               --user "${{ secrets.APPETIZE_API_TOKEN }}:" \
+               --form "file=@shared/build/bin/iosX64/debugFramework/iosApp.zip" \
+               --form "platform=ios"
