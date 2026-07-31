@@ -25,17 +25,18 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Triggers the internal KMP packaging script to build the architecture binary target layout
+      # 1. Triggers compilation while explicitly providing the platform context required by Compose
       - name: Build and Package iOS Target
         env:
           GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
           CONFIGURATION: Debug
           SDKROOT: iphonesimulator
+          PLATFORM_NAME: iphonesimulator
           ARCHS: x86_64
           EXPANDED_CODE_SIGN_STYLE: Manual
         run: ./gradlew :shared:embedAndSignAppleFrameworkForXcode
 
-      # 2. Automatically isolates the nested standalone .app framework assets and packs them
+      # 2. Automatically isolates the nested standalone .framework assets and packs them
       - name: Package Simulator App Bundle
         run: |
           echo "Searching for compiled application artifacts..."
