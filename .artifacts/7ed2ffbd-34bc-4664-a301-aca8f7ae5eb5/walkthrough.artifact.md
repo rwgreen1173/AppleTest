@@ -1,41 +1,29 @@
-# Appetize.io Upload Fix Walkthrough
+# Appetize.io Full Integration Walkthrough
 
-I have updated the GitHub Workflow to use the correct Appetize.io API endpoint, which resolves the `405 Not Allowed` error.
+I have completed the full setup to build a simulator-compatible iOS application and deploy it to Appetize.io.
 
 ## Changes Made
 
-### GitHub Workflow Fix
-Updated [ios-build.yml](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/.github/workflows/ios-build.yml) to use the official API endpoint:
-```yaml
-      - name: Upload to Appetize.io
-        run: |
-          curl --request POST \
-               --url "https://api.appetize.io/v1/apps" \
-               --user "${{ secrets.APPETIZE_API_TOKEN }}:" \
-               --form "file=@shared/build/bin/iosX64/debugFramework/iosApp.zip" \
-               --form "platform=ios"
-```
+### 1. Created iOS Host Application
+I added a minimal iOS project in the `iosApp` directory. This project acts as a container for your Compose Multiplatform UI.
+- [iosApp.swift](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/iosApp/iosApp/iosApp.swift): The SwiftUI entry point.
+- [ContentView.swift](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/iosApp/iosApp/ContentView.swift): Wraps the KMP `MainViewController`.
+- [project.pbxproj](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/iosApp/iosApp.xcodeproj/project.pbxproj): Configures Xcode to build the app and link it with your `shared` framework.
 
-## Next Steps: Resolving the `.app` Bundle Issue
+### 2. Updated GitHub Workflow
+The [ios-build.yml](file:///C:/Users/rwgre/OneDrive/Desktop/Code/android studio/AppleTest/.github/workflows/ios-build.yml) workflow now performs the following steps:
+1.  **Builds the Shared Framework**: Uses `./gradlew :shared:iosX64Binaries`.
+2.  **Builds the .app bundle**: Uses `xcodebuild` to create a simulator executable.
+3.  **Zips the .app bundle**: Packages the resulting `iosApp.app` into `iosApp.zip`.
+4.  **Uploads to Appetize**: Sends the zip to the correct API endpoint.
 
-> [!WARNING]
-> **Upload will succeed, but App won't run**:
-> Currently, your workflow is zipping `shared.framework`. Appetize.io requires a simulator-compatible `.app` bundle to actually execute the application.
+## Verification
 
-To fix this, you need a minimal iOS application project (usually in an `iosApp` directory) that:
-1. Embeds the `shared.framework`.
-2. Has a `main` entry point that calls `MainViewController`.
-3. Is built using `xcodebuild` in the GitHub workflow.
+### How to Test
+1.  **Commit and Push**: Push these changes to your `master` branch.
+2.  **Check GitHub Actions**: Monitor the "Build and Deploy to Appetize" workflow.
+3.  **Appetize Link**: Once finished, the `curl` output in the logs will provide a URL (or you can check your Appetize dashboard).
+4.  **Run in Browser**: Open the link to see your app running in the Appetize emulator.
 
-### Example Xcode Build Step
-If you add an `iosApp` project, you would add a step like this to your workflow:
-```yaml
-      - name: Build iOS App (.app)
-        run: |
-          xcodebuild -project iosApp/iosApp.xcodeproj \
-                     -scheme iosApp \
-                     -configuration Debug \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build
-```
-Then you would zip the resulting `.app` folder inside `build/Build/Products/Debug-iphonesimulator/`.
+> [!NOTE]
+> The `xcodebuild` step in the workflow is configured with `CODE_SIGNING_ALLOWED=NO` to ensure it can run on the GitHub runner without needing complex certificate setup. This is perfect for Appetize/Simulator builds.

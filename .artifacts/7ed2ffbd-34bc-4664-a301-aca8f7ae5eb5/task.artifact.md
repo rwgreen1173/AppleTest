@@ -1,3 +1,9 @@
 - `[x]` Update `ios-build.yml` with correct Appetize API URL
 - `[x]` Fix `curl` command syntax for Appetize API
 - `[x]` Add guidance on generating the required `.app` bundle
+- `[x]` Create `iosApp` directory structure
+- `[x]` Create `iosApp/iosApp/iosApp.swift`
+- `[x]` Create `iosApp/iosApp/ContentView.swift`
+- `[x]` Create `iosApp/iosApp/Info.plist`
+- `[x]` Create `iosApp/iosApp.xcodeproj/project.pbxproj`
+- `[x]` Update `ios-build.yml` to build `.app` bundle and upload

@@ -25,15 +25,25 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # Compiles the simulator application directory (.app)
-      - name: Build iOS Simulator App
+      # Compiles the simulator framework
+      - name: Build Shared Framework
         run: ./gradlew :shared:iosX64Binaries
+
+      # Builds the actual iOS .app bundle using xcodebuild
+      - name: Build iOS Simulator App
+        run: |
+          xcodebuild -project iosApp/iosApp.xcodeproj \
+                     -scheme iosApp \
+                     -configuration Debug \
+                     -sdk iphonesimulator \
+                     -derivedDataPath build-ios \
+                     CODE_SIGNING_ALLOWED=NO
 
       # Zips the built .app package so Appetize can read it
       - name: Zip Simulator App
         run: |
-          cd shared/build/bin/iosX64/debugFramework/
-          zip -r iosApp.zip *.framework
+          cd build-ios/Build/Products/Debug-iphonesimulator/
+          zip -r iosApp.zip iosApp.app
 
       # Uploads the zip directly to your Appetize dashboard
       - name: Upload to Appetize.io
@@ -41,5 +51,5 @@ jobs:
           curl --request POST \
                --url "https://api.appetize.io/v1/apps" \
                --user "${{ secrets.APPETIZE_API_TOKEN }}:" \
-               --form "file=@shared/build/bin/iosX64/debugFramework/iosApp.zip" \
+               --form "file=@build-ios/Build/Products/Debug-iphonesimulator/iosApp.zip" \
                --form "platform=ios"
