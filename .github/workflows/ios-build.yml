@@ -25,14 +25,14 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Runs the built-in multiplatform deployment compilation script to generate the .app shell
-      - name: Build iOS Simulator Application Bundle
-        run: ./gradlew :app:iosDeployDevelopmentExecutable
+      # 1. Compiles your core Kotlin Multiplatform shared binary structure
+      - name: Build Shared iOS Binary
+        run: ./gradlew :shared:iosX64Binaries
 
-      # 2. Sweeps the build paths to capture the formatted app container folder and packs it
+      # 2. Scans the workspace specifically for the executable .app bundle folder and packages it
       - name: Package Simulator App Bundle
         run: |
-          echo "Locating the generated application bundle..."
+          echo "Searching for compiled application bundles..."
           APP_PATH=$(find . -name "*.app" -type d | grep -v "Xcode" | head -n 1)
           
           if [ -z "$APP_PATH" ]; then
@@ -40,16 +40,16 @@ jobs:
             exit 1
           fi
           
-          echo "Found application bundle folder at: $APP_PATH"
+          echo "Found application target folder at: $APP_PATH"
           PARENT_DIR=$(dirname "$APP_PATH")
           APP_NAME=$(basename "$APP_PATH")
           
           cd "$PARENT_DIR"
           zip -r iosApp.zip "$APP_NAME"
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully packed executable application structure."
+          echo "Successfully packed application binary structure."
 
-      # 3. Securely pushes the finalized app package to your Appetize streaming dashboard
+      # 3. Securely pushes the valid target package directly to the correct API endpoint
       - name: Upload to Appetize.io
         run: |
           curl -X POST https://appetize.io \
