@@ -25,34 +25,34 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Compiles your core Kotlin Multiplatform binaries inside the shared module
-      - name: Build Shared iOS Binary
-        run: ./gradlew :shared:iosX64Binaries
+      # 1. Compiles the actual visual application bundle for the iOS Simulator
+      - name: Build iOS Simulator Application
+        run: ./gradlew :app:iosX64DebugExecutable
 
-      # 2. Automatically locates the built binary files, packages them into a ZIP archive, and moves them to the workspace root
+      # 2. Automatically isolates the native .app container and zips it up
       - name: Package Simulator App Bundle
         run: |
-          echo "Locating your generated KMP application assets..."
-          ASSET_PATH=$(find shared/build -name "*.framework" -type d | head -n 1)
+          echo "Locating the generated KMP application bundle..."
+          APP_PATH=$(find . -name "*.app" -type d | grep -v "Xcode" | head -n 1)
           
-          if [ -z "$ASSET_PATH" ]; then
-            echo "ERROR: Could not locate compiled multiplatform framework outputs inside shared/build."
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Could not locate compiled .app bundles inside your project build outputs."
             exit 1
           fi
           
-          echo "Found compiled framework path at: $ASSET_PATH"
-          PARENT_DIR=$(dirname "$ASSET_PATH")
-          ASSET_NAME=$(basename "$ASSET_PATH")
+          echo "Found application bundle folder at: $APP_PATH"
+          PARENT_DIR=$(dirname "$APP_PATH")
+          APP_NAME=$(basename "$APP_PATH")
           
           cd "$PARENT_DIR"
-          zip -r iosApp.zip "$ASSET_NAME"
+          zip -r iosApp.zip "$APP_NAME"
           mv iosApp.zip $GITHUB_WORKSPACE/iosApp.zip
-          echo "Successfully packaged build assets."
+          echo "Successfully packed executable application structure."
 
       # 3. Securely pushes the valid target package directly to the correct API endpoint
       - name: Upload to Appetize.io
         run: |
-          curl -X POST https://api.appetize.io/v1/apps \
+          curl -X POST https://appetize.io \
                -H "X-API-KEY: ${{ secrets.APPETIZE_API_TOKEN }}" \
                -F "file=@iosApp.zip" \
                -F "platform=ios"
