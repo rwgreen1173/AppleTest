@@ -38,7 +38,7 @@ jobs:
       # Uploads the zip directly to your Appetize dashboard
       - name: Upload to Appetize.io
         run: |
-          curl --url https://appetize.io/v1/apps \
+          curl --url "https://appetize.io" \
                --user "${{ secrets.APPETIZE_API_TOKEN }}:" \
                --form "file=@shared/build/bin/iosX64/debugFramework/iosApp.zip" \
                --form "platform=ios"
