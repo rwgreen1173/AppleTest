@@ -25,7 +25,7 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Triggers the build while supplying standard fallback project keys for Compose
+      # 1. Triggers compilation using the fully-qualified Compose resource directory override path
       - name: Build and Package iOS Target
         env:
           GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
@@ -36,9 +36,9 @@ jobs:
           EXPANDED_CODE_SIGN_STYLE: Manual
         run: |
           ./gradlew :shared:embedAndSignAppleFrameworkForXcode \
-            -Pcompose.ios.resources.dir="${{ github.workspace }}/shared/build/processedResources/ios/main"
+            -Porg.jetbrains.compose.resources.ios.dir="${{ github.workspace }}/shared/build/processedResources/ios/main"
 
-      # 2. Automatically isolates the nested standalone framework assets and packs them
+      # 2. Automatically isolates the nested standalone .framework assets and packs them
       - name: Package Simulator App Bundle
         run: |
           echo "Searching for compiled application artifacts..."
