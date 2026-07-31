@@ -25,7 +25,7 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      # 1. Triggers compilation while providing the complete virtual directory output path required by Compose
+      # 1. Triggers compilation while providing the absolute target directory subpath required by Compose
       - name: Build and Package iOS Target
         env:
           GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
@@ -34,10 +34,10 @@ jobs:
           PLATFORM_NAME: iphonesimulator
           ARCHS: x86_64
           EXPANDED_CODE_SIGN_STYLE: Manual
-          BUILT_PRODUCTS_DIR: ${{ github.workspace }}/shared/build/appetize-output  # <-- ADD THIS LINE
+          BUILT_PRODUCTS_DIR: ${{ github.workspace }}/shared/build/appetize-output/contents
         run: ./gradlew :shared:embedAndSignAppleFrameworkForXcode
 
-      # 2. Automatically locates the nested standalone framework assets and packages them
+      # 2. Automatically isolates the nested standalone .framework assets and packs them
       - name: Package Simulator App Bundle
         run: |
           echo "Searching for compiled application artifacts..."
